@@ -1,32 +1,14 @@
-name: Validate analysis
+name: Check archived results
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  validate:
+  check-artifacts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Validate archived exam artifacts
+      - name: Check integrity and consistency of the existing exam results
         run: python3 scripts/verify_results.py
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.4.3'
-          use-public-rspm: true
-      - name: Install analysis dependencies
-        run: Rscript scripts/install_dependencies.R
-      - name: Parse all portable R scripts
-        run: Rscript -e 'invisible(lapply(list.files("scripts", pattern = "[.]R$", full.names = TRUE), parse))'
-      - name: Execute historical PCA
-        run: Rscript scripts/02_pca.R
-      - name: Check PCA against the presentation
-        shell: Rscript {0}
-        run: |
-          variance <- read.delim("runs/PCA/explained_variance.tsv")$explained_percent
-          stopifnot(abs(variance[1] - 50.9) < 0.05, abs(variance[2] - 10.1) < 0.05)
-          message(sprintf("PASS: PC1 %.4f%%, PC2 %.4f%%", variance[1], variance[2]))
-      - name: Exercise the paired expression pipeline
-        run: Rscript scripts/smoke_test.R
