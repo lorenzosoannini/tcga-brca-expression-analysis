@@ -1,0 +1,2 @@
+archive/** -text -whitespace
+results/exam/** -text -whitespace
